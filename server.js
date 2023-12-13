@@ -4,7 +4,6 @@ const ExtractJwt = require("passport-jwt").ExtractJwt;
 const randtoken = require("rand-token");
 const passport = require("passport");
 const nodemailer = require("nodemailer");
-const mongoose = require("mongoose");
 
 const express = require("express");
 const multer = require("multer");
@@ -13,12 +12,15 @@ const uuid = require("uuid").v4;
 require("dotenv").config();
 let lastUUID = "";
 
+// DB Operations
+const dbooperation = require('./dboperations');
+
 const app = express();
 const refreshTokens = {};
 
 const passportOpts = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.JWT_SECRET_KEY,
+  secretOrKey: process.env.PASSPORT_SECRET,
 };
 
 app.use(bodyParser.json());
@@ -59,7 +61,12 @@ passport.serializeUser(function (user, done) {
   done(null, user.username);
 });
 
+// Setting to user public folder as public folder (default value : index.html)
 app.use(express.static('public'));
+
+function mysqlResults(result) {
+  return JSON.parse(JSON.stringify(result));
+}
 
 // File upload logic if any
 const fileNameSeperator = "_";
@@ -75,25 +82,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// MongoDB Atlas connection
-mongoose.connect(process.env.MONGODB_ATLAS_CONNECTION_STRING, {});
-
-// Mongo DB model User
-const User = mongoose.model("User", {
-  email: String,
-  password: String,
-  userType: String,
-  passwordReset: Boolean,
-  isPasswordCreated: Boolean,
-  creationDateTime: Date,
-  lastUpdatedDateTime: Date,
-  isUserActive: Boolean,
-  otherField1: String,
-  otherField2: String,
-});
-
 function generateAccessToken(user) {
-  return jwt.sign({ email: user.email }, process.env.JWT_SECRET_KEY, {
+  return jwt.sign({ email: user.email }, process.env.PASSPORT_SECRET, {
     expiresIn: process.env.TOKEN_EXPIRY_IN_SECS,
   });
 }
@@ -103,25 +93,13 @@ function authenticateToken(req, res, next) {
   const token = authHeader && authHeader.split(" ")[1];
   if (token == null) return res.sendStatus(401);
 
-  jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+  jwt.verify(token, process.env.PASSPORT_SECRET, (err, user) => {
     if (err) return res.sendStatus(403);
 
     req.user = user;
     next();
   });
 }
-
-// Middleware to verify JWT
-// const verifyToken = (req, res, next) => {
-//   const token = req.header('Authorization');
-//   if (!token) return res.status(401).send('Access denied. No token provided.');
-
-//   jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
-//     if (err) return res.status(401).send('Invalid token.');
-//     req.user = decoded;
-//     next();
-//   });
-// };
 
 async function sendMail(email, subject, htmlTemplate) {
   const transporter = nodemailer.createTransport({
@@ -146,98 +124,34 @@ async function sendMail(email, subject, htmlTemplate) {
   }
 }
 
-// Test api
-app.get("/test", (req, res) => {
-  res.status(200).json({ success: "Tesing" });
-});
-
-app.get('/send', async (req, res) => {
-  const email = "sura.234212@gmail.com";
-  const subject = "Testing Email service";
-  const message = `<h1>Testing</h1>`;
-  const output = await sendMail(email, subject, message);
-  if (output.response) {
-    if (output.response.split(" ")[2] === 'OK') {
-      res.status(200).json({message: 'Mail has been sent successfully'});
+app.get('/getAllUsers', (req, res) => {
+  dbooperation.getAllUsers().then(result => {
+    const data = mysqlResults(result);
+    if (data.length > 0) {
+      const output = [];
+      for (let index = 0; index < data.length; index++) {
+        output.push(
+          {
+            id: data[index].id,
+            email: data[index].email,
+            userType: data[index].userType,
+            passwordReset: data[index].passwordReset,
+            isPasswordCreated: data[index].isPasswordCreated,
+            creationDateTime: data[index].creationDateTime,
+            lastUpdatedDateTime: data[index].lastUpdatedDateTime,
+            isUserActive: data[index].isUserActive,
+            otherField1: data[index].otherField1,
+            otherField2: data[index].otherField2
+          }
+        )
+      }
+      return res.json({ status: 'OK', result: output });
     } else {
-      res.status(200).json({message: 'Sending mail has been failed'});
+      return res.json({ status: 'OK', result: [] });
     }
-  }
-})
-
-// Register a new user
-app.post("/register", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = new User({
-      email,
-      password: hashedPassword,
-      userType: "normal",
-      passwordReset: false,
-      isPasswordCreated: false,
-      creationDateTime: new Date(),
-      lastUpdatedDateTime: new Date(),
-      isUserActive: true,
-      otherField1: null,
-      otherField2: null,
-    });
-
-    await user.save();
-    res.status(201).send("User registered successfully.");
-  } catch (error) {
-    res.status(500).send("Error registering user.");
-  }
-});
-
-// Protected route example
-app.get("/protected", authenticateToken, (req, res) => {
-  res.send(`Welcome, ${req.user.username}!`);
-});
-
-// Login and get JWT and refresh token
-app.post("/login", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const user = await User.find({});
-    console.log(user);
-    if (!user)
-      return res.status(401).json({ message: "Invalid username or password." });
-
-    // const validPassword = await bcrypt.compare(password, user.password);
-    // if (!validPassword) return res.status(401).send('Invalid username or password.');
-
-    const token = generateAccessToken(user);
-    const refreshToken = randtoken.uid(256);
-    refreshTokens[refreshToken] = username;
-    res.status(200).json({ jwt: token, refreshToken: refreshToken });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post("/refresh", function (req, res) {
-  const refreshToken = req.body.refreshToken;
-
-  if (refreshToken in refreshTokens) {
-    const user = {
-      username: refreshTokens[refreshToken],
-      role: "admin",
-    };
-    const token = generateAccessToken(user);
-    res.json({ jwt: token });
-  } else {
-    res.sendStatus(401);
-  }
-});
-
-app.post("/logout", function (req, res) {
-  const refreshToken = req.body.refreshToken;
-  if (refreshToken in refreshTokens) {
-    delete refreshTokens[refreshToken];
-  }
-  res.sendStatus(204);
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
 });
 
 const PORT = process.env.SERVER_PORT || 3000;
