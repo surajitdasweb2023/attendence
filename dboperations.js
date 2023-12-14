@@ -149,411 +149,6 @@ async function deactivateUser(id) {
   }
 }
 
-async function createProfile(company) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    const id = uuid();
-    const {
-      companyName,
-      countryName,
-      stateName,
-      address,
-      isDeleted,
-      creationDateTime,
-      otherField1,
-      otherField2,
-    } = company;
-    return await query(
-      `INSERT INTO company_profiles VALUES('${id}','${companyName}','${countryName}','${stateName}','${address}','${isDeleted}','${creationDateTime}','${otherField1}','${otherField2}')`
-    );
-  } finally {
-    conn.end();
-  }
-}
-
-async function deleteCompanyProfile(company) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    const { id, status } = company;
-    return await query(
-      `UPDATE company_profiles SET isDeleted='${status}' WHERE id='${id}'`
-    );
-  } finally {
-    conn.end();
-  }
-}
-
-async function getCompanyProfile(id) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    return await query(`SELECT * FROM company_profiles WHERE id='${id}'`);
-  } finally {
-    conn.end();
-  }
-}
-
-async function updateProfile(profile) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    const {
-      id,
-      companyName,
-      countryName,
-      stateName,
-      address,
-      otherField1,
-      otherField2,
-    } = profile;
-    return await query(
-      `UPDATE company_profiles SET companyName='${companyName}', countryName='${countryName}', stateName='${stateName}', address='${address}', otherField1='${otherField1}', otherField2='${otherField2}' WHERE id='${id}'`
-    );
-  } finally {
-    conn.end();
-  }
-}
-
-async function getAllServices() {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    return await query(`SELECT * FROM services ORDER BY creationDateTime DESC`);
-  } finally {
-    conn.end();
-  }
-}
-
-async function getAllServicesById(id) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    return await query(`SELECT * FROM services WHERE id='${id}'`);
-  } finally {
-    conn.end();
-  }
-}
-
-async function getAllServicesByCompanyId(id) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    return await query(
-      `SELECT * FROM services WHERE companyId='${id}' ORDER BY creationDateTime DESC`
-    );
-  } finally {
-    conn.end();
-  }
-}
-
-async function getAllServicesByUserId(id) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    return await query(
-      `SELECT * FROM services WHERE createdBy='${id}' ORDER BY creationDateTime DESC`
-    );
-  } finally {
-    conn.end();
-  }
-}
-
-async function createService(service) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    const id = uuid();
-    const {
-      companyId,
-      createdBy,
-      serviceName,
-      category,
-      status,
-      creationDateTime,
-      comments,
-      otherField1,
-      otherField2,
-    } = service;
-    return await query(
-      `INSERT INTO services VALUES('${id}','${companyId}','${createdBy}','${serviceName}','${category}','${status}','${creationDateTime}','${comments}','${otherField1}','${otherField2}')`
-    );
-  } finally {
-    conn.end();
-  }
-}
-
-async function updateServiceComment(service) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    const { id, comments } = service;
-    return await query(
-      `UPDATE services SET comments='${comments}' WHERE id='${id}'`
-    );
-  } finally {
-    conn.end();
-  }
-}
-
-async function createApplicantInformation(applicant) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    const id = uuid();
-    const {
-      userId,
-      name,
-      gender,
-      dateOfBirth,
-      placeOfBirth,
-      maritalStatus,
-      degree,
-      degreeName,
-      address,
-      telephone,
-      email,
-      nationality,
-      passportIssueDate,
-      passportIssuingEntity,
-      validTillDate,
-      noOfBlankPassportPages,
-      otherApplicant1Details,
-      otherApplicant2Details,
-      otherApplicant3Details,
-      otherApplicant4Details,
-      otherApplicant5Details,
-      otherApplicant6Details,
-      otherApplicant7Details,
-      otherApplicant8Details,
-      otherApplicant9Details,
-      otherApplicant10Details,
-      currentJobTitle,
-      currentEmployerName,
-      currentEmployerAddress,
-      withCurrentEmployerSince,
-      jobTitleOnceInPortugal,
-      employerNameInPortugal,
-      employerAddressInPortutal,
-      monthlySalaryInPortugal,
-      otherIncomeSources,
-      expectedTravelDateToPortugal,
-      expectedDurationOfStayInPortugal,
-      obtainedImmigrationPreviously,
-      obtainedImmigrationPreviouslyDetails,
-      refusedVisa,
-      refusedVisaDetails,
-      otherField1,
-      otherField2,
-    } = applicant;
-    return await query(`INSERT INTO applicant_information VALUES(
-      '${id}',
-      '${userId}',
-      '${name}',
-      '${gender}',
-      '${dateOfBirth}',
-      '${placeOfBirth}',
-      '${maritalStatus}',
-      '${degree}',
-      '${degreeName}',
-      '${address}',
-      '${telephone}',
-      '${email}',
-      '${nationality}',
-      '${passportIssueDate}',
-      '${passportIssuingEntity}',
-      '${validTillDate}',
-      '${noOfBlankPassportPages}',
-      '${otherApplicant1Details}',
-      '${otherApplicant2Details}',
-      '${otherApplicant3Details}',
-      '${otherApplicant4Details}',
-      '${otherApplicant5Details}',
-      '${otherApplicant6Details}',
-      '${otherApplicant7Details}',
-      '${otherApplicant8Details}',
-      '${otherApplicant9Details}',
-      '${otherApplicant10Details}',
-      '${currentJobTitle}',
-      '${currentEmployerName}',
-      '${currentEmployerAddress}',
-      '${withCurrentEmployerSince}',
-      '${jobTitleOnceInPortugal}',
-      '${employerNameInPortugal}',
-      '${employerAddressInPortutal}',
-      '${monthlySalaryInPortugal}',
-      '${otherIncomeSources}',
-      '${expectedTravelDateToPortugal}',
-      '${expectedDurationOfStayInPortugal}',
-      '${obtainedImmigrationPreviously}',
-      '${obtainedImmigrationPreviouslyDetails}',
-      '${refusedVisa}',
-      '${refusedVisaDetails}',
-      '${otherField1}',
-      '${otherField2}'
-      )`);
-  } finally {
-    conn.end();
-  }
-}
-
-async function getApplicantInformation(userId) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    return await query(
-      `SELECT * FROM applicant_information WHERE userId='${userId}'`
-    );
-  } finally {
-    conn.end();
-  }
-}
-
-async function updateApplicantInformation(applicant) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    const {
-      id,
-      name,
-      gender,
-      dateOfBirth,
-      placeOfBirth,
-      maritalStatus,
-      degree,
-      degreeName,
-      address,
-      telephone,
-      email,
-      nationality,
-      passportIssueDate,
-      passportIssuingEntity,
-      validTillDate,
-      noOfBlankPassportPages,
-      otherApplicant1Details,
-      otherApplicant2Details,
-      otherApplicant3Details,
-      otherApplicant4Details,
-      otherApplicant5Details,
-      otherApplicant6Details,
-      otherApplicant7Details,
-      otherApplicant8Details,
-      otherApplicant9Details,
-      otherApplicant10Details,
-      currentJobTitle,
-      currentEmployerName,
-      currentEmployerAddress,
-      withCurrentEmployerSince,
-      jobTitleOnceInPortugal,
-      employerNameInPortugal,
-      employerAddressInPortutal,
-      monthlySalaryInPortugal,
-      otherIncomeSources,
-      expectedTravelDateToPortugal,
-      expectedDurationOfStayInPortugal,
-      obtainedImmigrationPreviously,
-      obtainedImmigrationPreviouslyDetails,
-      refusedVisa,
-      refusedVisaDetails,
-      otherField1,
-      otherField2,
-    } = applicant;
-    return await query(`UPDATE applicant_information SET
-      name='${name}',
-      gender='${gender}',
-      dateOfBirth='${dateOfBirth}',
-      placeOfBirth='${placeOfBirth}',
-      maritalStatus='${maritalStatus}',
-      degree='${degree}',
-      degreeName='${degreeName}',
-      address='${address}',
-      telephone='${telephone}',
-      email='${email}',
-      nationality='${nationality}',
-      passportIssueDate='${passportIssueDate}',
-      passportIssuingEntity='${passportIssuingEntity}',
-      validTillDate='${validTillDate}',
-      noOfBlankPassportPages='${noOfBlankPassportPages}',
-      otherApplicant1Details='${otherApplicant1Details}',
-      otherApplicant2Details='${otherApplicant2Details}',
-      otherApplicant3Details='${otherApplicant3Details}',
-      otherApplicant4Details='${otherApplicant4Details}',
-      otherApplicant5Details='${otherApplicant5Details}',
-      otherApplicant6Details='${otherApplicant6Details}',
-      otherApplicant7Details='${otherApplicant7Details}',
-      otherApplicant8Details='${otherApplicant8Details}',
-      otherApplicant9Details='${otherApplicant9Details}',
-      otherApplicant10Details='${otherApplicant10Details}',
-      currentJobTitle='${currentJobTitle}',
-      currentEmployerName='${currentEmployerName}',
-      currentEmployerAddress='${currentEmployerAddress}',
-      withCurrentEmployerSince='${withCurrentEmployerSince}',
-      jobTitleOnceInPortugal='${jobTitleOnceInPortugal}',
-      employerNameInPortugal='${employerNameInPortugal}',
-      employerAddressInPortutal='${employerAddressInPortutal}',
-      monthlySalaryInPortugal='${monthlySalaryInPortugal}',
-      otherIncomeSources='${otherIncomeSources}',
-      expectedTravelDateToPortugal='${expectedTravelDateToPortugal}',
-      expectedDurationOfStayInPortugal='${expectedDurationOfStayInPortugal}',
-      obtainedImmigrationPreviously='${obtainedImmigrationPreviously}',
-      obtainedImmigrationPreviouslyDetails='${obtainedImmigrationPreviouslyDetails}',
-      refusedVisa='${refusedVisa}',
-      refusedVisaDetails='${refusedVisaDetails}',
-      otherField1='${otherField1}',
-      otherField2='${otherField2}'
-      WHERE id='${id}'
-      `);
-  } finally {
-    conn.end();
-  }
-}
-
-async function getConfigurations() {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    return await query(`SELECT * FROM configurations`);
-  } finally {
-    conn.end();
-  }
-}
-
-async function updateConfiguration(configuration) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    const {
-      id,
-      conf1,
-      conf2,
-      conf3,
-      conf4,
-      conf5,
-      conf6,
-      conf7,
-      conf8,
-      conf9,
-      conf10,
-      conf11,
-      conf12,
-      conf13,
-      conf14,
-      conf15,
-      conf16,
-      conf17,
-      conf18,
-      conf19,
-      conf20,
-    } = configuration;
-    return await query(`UPDATE configurations SET
-      conf1='${conf1}', conf2='${conf2}', conf3='${conf3}', conf4='${conf4}', conf5='${conf5}',
-      conf6='${conf6}', conf7='${conf7}', conf8='${conf8}', conf9='${conf9}', conf10='${conf10}',
-      conf11='${conf11}', conf12='${conf12}', conf13='${conf13}', conf14='${conf14}', conf15='${conf15}',
-      conf16='${conf16}', conf17='${conf17}', conf18='${conf18}', conf19='${conf19}', conf20='${conf20}'
-      WHERE id='${id}'
-    `);
-  } finally {
-    conn.end();
-  }
-}
-
-async function updateServiceFile(data) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    const { id, status } = data;
-    return await query(`UPDATE services SET status='${status}' WHERE id='${id}'
-    `);
-  } finally {
-    conn.end();
-  }
-}
-
 async function updatePasswordReset(data) {
   const { conn, query } = getMySqlDBConnection();
   try {
@@ -575,46 +170,143 @@ async function ifEmailAlreadyExist(email) {
   }
 }
 
-async function userStatus(id) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    return await query(`SELECT * FROM users WHERE id='${id}'`);
-  } finally {
-    conn.end();
-  }
-}
 
-async function getRequiredDocuments(id) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    return await query(`SELECT * FROM required_documents WHERE id='${id}'`);
-  } finally {
-    conn.end();
-  }
-}
 
-async function insertRequiredDocuments(data) {
+async function createProfile(company) {
   const { conn, query } = getMySqlDBConnection();
   try {
-    const { id, documents, otherField1, otherField2 } = data;
+    const id = uuid();
+    const {
+      userId,
+      name,
+      age,
+      address,
+      designation,
+      profileCreationDate,
+      otherField1,
+      otherField2,
+      otherField3,
+      otherField4,
+    } = company;
     return await query(
-      `INSERT INTO required_documents VALUES('${id}','${documents}','${otherField1}','${otherField2}')`
+      `INSERT INTO company_profiles VALUES('${id}','${userId}','${name}','${age}','${address}','${designation}','${profileCreationDate}','${otherField1}','${otherField2}',,'${otherField3}','${otherField4}')`
     );
   } finally {
     conn.end();
   }
 }
 
-async function updateRequiredDocuments(data) {
+async function getProfile(id) {
   const { conn, query } = getMySqlDBConnection();
   try {
-    const { id, documents, otherField1, otherField2 } = data;
-    return await query(`UPDATE required_documents SET
-      documents='${documents}',
-      otherField1='${otherField1}',
-      otherField2='${otherField2}'
-      WHERE id='${id}'
-      `);
+    return await query(`SELECT * FROM profiles WHERE id='${id}'`);
+  } finally {
+    conn.end();
+  }
+}
+
+async function updateProfile(profile) {
+  const { conn, query } = getMySqlDBConnection();
+  try {
+    const {
+      id,
+      userId,
+      name,
+      age,
+      address,
+      designation,
+      profileCreationDate,
+      otherField1,
+      otherField2,
+      otherField3,
+      otherField4,
+    } = profile;
+    return await query(
+      `UPDATE company_profiles SET userId='${userId}', name='${name}', age='${age}', address='${address}', designation='${designation}', profileCreationDate='${profileCreationDate}', otherField1='${otherField1}', otherField2='${otherField2}', otherField1='${otherField3}', otherField2='${otherField4}' WHERE id='${id}'`
+    );
+  } finally {
+    conn.end();
+  }
+}
+
+
+
+async function getAllAttendence() {
+  const { conn, query } = getMySqlDBConnection();
+  try {
+    return await query(`SELECT * FROM attendence ORDER BY lastUpdatedDateTime DESC`);
+  } finally {
+    conn.end();
+  }
+}
+
+async function getAllAttendenceByEmail(service) {
+  const { conn, query } = getMySqlDBConnection();
+  try {
+    const { id } = service;
+    return await query(`SELECT * FROM attendence WHERE id='${id}' ORDER BY lastUpdatedDateTime DESC`);
+  } finally {
+    conn.end();
+  }
+}
+
+async function createAttendence(service) {
+  const { conn, query } = getMySqlDBConnection();
+  try {
+    const id = uuid();
+    const {
+      userId,
+      currentDate,
+      lastUpdatedDateTime,
+      entryDateTime,
+      exitDateTime,
+      otherField1,
+      otherField2,
+      otherField3,
+      otherField4,
+    } = service;
+    return await query(
+      `INSERT INTO attendence VALUES('${id}','${userId}','${currentDate}','${lastUpdatedDateTime}','${entryDateTime}','${exitDateTime}','${otherField1}','${otherField2}','${otherField3}','${otherField4}')`
+    );
+  } finally {
+    conn.end();
+  }
+}
+
+async function updateAttendence(service) {
+  const { conn, query } = getMySqlDBConnection();
+  try {
+    const { id, entryDateTime, exitDateTime } = service;
+    return await query(
+      `UPDATE attendence SET entryDateTime='${entryDateTime}', exitDateTime='${exitDateTime}' WHERE id='${id}'`
+    );
+  } finally {
+    conn.end();
+  }
+}
+
+
+
+async function getConfigurations() {
+  const { conn, query } = getMySqlDBConnection();
+  try {
+    return await query(`SELECT * FROM configurations`);
+  } finally {
+    conn.end();
+  }
+}
+
+async function updateConfiguration(configuration) {
+  const { conn, query } = getMySqlDBConnection();
+  try {
+    const {
+      id,
+      conf1,
+      conf2,
+      conf3,
+    } = configuration;
+    return await query(`UPDATE configurations SET conf1='${conf1}', conf2='${conf2}', conf3='${conf3}' WHERE id='${id}'
+    `);
   } finally {
     conn.end();
   }
@@ -631,28 +323,18 @@ module.exports = {
   getUserDetailsById: getUserDetailsById,
   getUserDetailsByEmail: getUserDetailsByEmail,
   deactivateUser: deactivateUser,
-
-  
-  createProfile: createProfile,
-  deleteCompanyProfile: deleteCompanyProfile,
-  getCompanyProfile: getCompanyProfile,
-  updateProfile: updateProfile,
-  getAllServices: getAllServices,
-  getAllServicesById: getAllServicesById,
-  getAllServicesByCompanyId: getAllServicesByCompanyId,
-  getAllServicesByUserId: getAllServicesByUserId,
-  createService: createService,
-  updateServiceComment: updateServiceComment,
-  createApplicantInformation: createApplicantInformation,
-  getApplicantInformation: getApplicantInformation,
-  updateApplicantInformation: updateApplicantInformation,
-  getConfigurations: getConfigurations,
-  updateConfiguration: updateConfiguration,
-  updateServiceFile: updateServiceFile,
   updatePasswordReset: updatePasswordReset,
   ifEmailAlreadyExist: ifEmailAlreadyExist,
-  userStatus: userStatus,
-  getRequiredDocuments: getRequiredDocuments,
-  insertRequiredDocuments: insertRequiredDocuments,
-  updateRequiredDocuments: updateRequiredDocuments,
+  
+  createProfile: createProfile,
+  getProfile: getProfile,
+  updateProfile: updateProfile,
+  
+  getAllAttendence: getAllAttendence,
+  getAllAttendenceByEmail: getAllAttendenceByEmail,
+  createAttendence: createAttendence,
+  updateAttendence: updateAttendence,
+
+  getConfigurations: getConfigurations,
+  updateConfiguration: updateConfiguration,
 };
