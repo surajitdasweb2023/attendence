@@ -155,8 +155,107 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 
+
 // APIs to invoke from Web Application
-app.get('/getAllUsers', (req, res) => {
+//USERS APIs
+app.post('/registration', (req, res) => {
+  const data = req.body.uiRequest;
+  dbooperation.registration(data).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.put('/isPasswordCreatedUpdate', (req, res) => {
+  dbooperation.isPasswordCreatedUpdate(req.body.uiRequest).then(result => {
+    const data = mysqlResults(result);
+    return res.json({ status: 'OK', result: data });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.post('/login', (req, res) => {
+  dbooperation.login(req.body.uiRequest).then(result => {
+    const data = mysqlResults(result);
+    if (data.length > 0) {
+
+      const token = generateAccessToken({
+        id: data[0].id,
+        email: data[0].email,
+        userType: data[0].userType
+      });
+      const refreshToken = randtoken.uid(256);
+      refreshTokens[refreshToken] = {
+        id: data[0].id,
+        email: data[0].email,
+        userType: data[0].userType
+      };
+
+      return res.json({
+        status: 'OK',
+        result: [{
+          id: data[0].id,
+          email: data[0].email,
+          userType: data[0].userType,
+          passwordReset: data[0].passwordReset,
+          isPasswordCreated: data[0].isPasswordCreated,
+          creationDateTime: data[0].creationDateTime,
+          lastUpdatedDateTime: data[0].lastUpdatedDateTime,
+          isUserActive: data[0].isUserActive,
+          otherField1: data[0].otherField1,
+          otherField2: data[0].otherField2
+        }],
+        token: {
+          jwt: token,
+          refreshToken: refreshToken
+        }
+      });
+    } else {
+      return res.json({ status: 'OK', result: [], token: {
+          jwt: '',
+          refreshToken: ''
+        }
+      });
+    }
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err,token: {
+        jwt: '',
+        refreshToken: ''
+      }
+    });
+  })
+});
+app.post('/logout', function (req, res) {
+  const refreshToken = req.body.refreshToken;
+  if (refreshToken in refreshTokens) {
+    delete refreshTokens[refreshToken];
+  }
+  res.sendStatus(204);
+});
+app.post('/refresh', function (req, res) {
+  const refreshToken = req.body.refreshToken;
+
+  if (refreshToken in refreshTokens) {
+    const user = {
+      'id': refreshTokens[refreshToken].id,
+      'email': refreshTokens[refreshToken].email,
+      'userType': refreshTokens[refreshToken].userType
+    }
+    const token = generateAccessToken(user);
+    res.json({jwt: token, user: user})
+  }
+  else {
+    res.sendStatus(401);
+  }
+});
+app.put('/updatePassword', authenticateToken, (req, res) => {
+  dbooperation.updatePassword(req.body.uiRequest).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.get('/getAllUsers', authenticateTokenForAdmin, (req, res) => {
   dbooperation.getAllUsers().then(result => {
     const data = mysqlResults(result);
     if (data.length > 0) {
@@ -185,6 +284,151 @@ app.get('/getAllUsers', (req, res) => {
     return res.json({ status: 'ERROR', result: err });
   })
 });
+app.put('/updateUserStatus', authenticateTokenForAdmin, (req, res) => {
+  dbooperation.updateUserStatus(req.body.uiRequest).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.get('/getUserDetailsById/:id', authenticateToken, (req, res) => {
+  dbooperation.getUserDetailsById(req.params.id).then(result => {
+    const data = mysqlResults(result);
+    if (data.length > 0) {
+      const output = [];
+      output.push({
+        id: data[0].id,
+        email: data[0].email,
+        userType: data[0].userType,
+        passwordReset: data[0].passwordReset,
+        isPasswordCreated: data[0].isPasswordCreated,
+        creationDateTime: data[0].creationDateTime,
+        lastUpdatedDateTime: data[0].lastUpdatedDateTime,
+        isUserActive: data[0].isUserActive,
+        otherField1: data[0].otherField1,
+        otherField2: data[0].otherField2
+      });
+      return res.json({ status: 'OK', result: output });
+    } else {
+      return res.json({ status: 'OK', result: [] });
+    }
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.get('/getUserDetailsByEmail/:email', (req, res) => {
+  dbooperation.getUserDetailsByEmail(req.params.email).then(result => {
+    const data = mysqlResults(result);
+    if (data.length > 0) {
+      const output = [];
+      output.push({
+        id: data[0].id,
+        email: data[0].email,
+        userType: data[0].userType,
+        passwordReset: data[0].passwordReset,
+        isPasswordCreated: data[0].isPasswordCreated,
+        creationDateTime: data[0].creationDateTime,
+        lastUpdatedDateTime: data[0].lastUpdatedDateTime,
+        isUserActive: data[0].isUserActive,
+        otherField1: data[0].otherField1,
+        otherField2: data[0].otherField2
+      });
+      return res.json({ status: 'OK', result: output });
+    } else {
+      return res.json({ status: 'OK', result: [] });
+    }
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.put('/deactivateUser/:id', (req,res) => {
+  dbooperation.deactivateUser(req.params.id).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.put('/updatePasswordReset', (req,res) => {
+  dbooperation.updatePasswordReset(req.body.uiRequest).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.get('/ifEmailAlreadyExist/:email', (req, res) => {
+  dbooperation.ifEmailAlreadyExist(req.params.email).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+// PROFILE APIs
+app.post('/createProfile', (req, res) => {
+  dbooperation.createProfile(req.body.uiRequest).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.get('/getProfile/:id', (req, res) => {
+  dbooperation.getProfile(req.params.id).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.post('/updateProfile', (req, res) => {
+  dbooperation.updateProfile(req.body.uiRequest).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+// ATTENDENCE APIs
+app.get('/getAllAttendence', (req, res) => {
+  dbooperation.getAllAttendence().then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+})
+app.get('/getAllAttendenceByEmail/:email', (req, res) => {
+  dbooperation.getAllAttendence(req.params.email).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+})
+app.post('/createAttendence', (req, res) => {
+  dbooperation.createAttendence(req.body.uiRequest).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+})
+app.put('/updateAttendence', (req, res) => {
+  dbooperation.updateAttendence(req.body.uiRequest).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+})
+// CONFIGURATIONS APIs
+app.get('/getConfigurations', authenticateToken, (req, res) => {
+  dbooperation.getConfigurations().then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+app.put('/updateConfiguration', authenticateTokenForAdmin, (req, res) => {
+  dbooperation.updateConfiguration(req.body.uiRequest).then(result => {
+    return res.json({ status: 'OK', result: mysqlResults(result) });
+  }).catch(err => {
+    return res.json({ status: 'ERROR', result: err });
+  })
+});
+
 
 
 // SERVER START WITH PORT

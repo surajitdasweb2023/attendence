@@ -26,30 +26,6 @@ async function getAllUsers() {
   }
 }
 
-async function insertUserDetails(user) {
-  const { conn, query } = getMySqlDBConnection();
-  try {
-    const {
-      id,
-      email,
-      password,
-      userType,
-      passwordReset,
-      isPasswordCreated,
-      creationDateTime,
-      lastUpdatedDateTime,
-      isUserActive,
-      otherField1,
-      otherField2,
-    } = user;
-    return await query(
-      `INSERT INTO users VALUES('${id}','${email}','${password}','${userType}','${passwordReset}','${isPasswordCreated}','${creationDateTime}','${lastUpdatedDateTime}','${isUserActive}','${otherField1}','${otherField2}')`
-    );
-  } finally {
-    conn.end();
-  }
-}
-
 async function registration(user) {
   const { conn, query } = getMySqlDBConnection();
   try {
@@ -98,7 +74,7 @@ async function updatePassword(user) {
   }
 }
 
-async function updateLogin(user) {
+async function isPasswordCreatedUpdate(user) {
   const { conn, query } = getMySqlDBConnection();
   try {
     const { id, isPasswordCreated } = user;
@@ -172,7 +148,7 @@ async function ifEmailAlreadyExist(email) {
 
 
 
-async function createProfile(company) {
+async function createProfile(profile) {
   const { conn, query } = getMySqlDBConnection();
   try {
     const id = uuid();
@@ -187,7 +163,7 @@ async function createProfile(company) {
       otherField2,
       otherField3,
       otherField4,
-    } = company;
+    } = profile;
     return await query(
       `INSERT INTO company_profiles VALUES('${id}','${userId}','${name}','${age}','${address}','${designation}','${profileCreationDate}','${otherField1}','${otherField2}',,'${otherField3}','${otherField4}')`
     );
@@ -240,11 +216,10 @@ async function getAllAttendence() {
   }
 }
 
-async function getAllAttendenceByEmail(service) {
+async function getAllAttendenceByEmail(email) {
   const { conn, query } = getMySqlDBConnection();
   try {
-    const { id } = service;
-    return await query(`SELECT * FROM attendence WHERE id='${id}' ORDER BY lastUpdatedDateTime DESC`);
+    return await query(`SELECT * FROM attendence WHERE userId='${email}' ORDER BY lastUpdatedDateTime DESC`);
   } finally {
     conn.end();
   }
@@ -313,13 +288,12 @@ async function updateConfiguration(configuration) {
 }
 
 module.exports = {
-  getAllUsers: getAllUsers,
-  insertUserDetails: insertUserDetails,
   registration: registration,
   login: login,
   updatePassword: updatePassword,
-  updateLogin: updateLogin,
+  isPasswordCreatedUpdate: isPasswordCreatedUpdate,
   updateUserStatus: updateUserStatus,
+  getAllUsers: getAllUsers,
   getUserDetailsById: getUserDetailsById,
   getUserDetailsByEmail: getUserDetailsByEmail,
   deactivateUser: deactivateUser,
