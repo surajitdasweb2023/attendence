@@ -55,7 +55,7 @@ async function login(user) {
   try {
     const { email, password } = user;
     return await query(
-      `SELECT * FROM users WHERE email='${email}' and password='${password}'`
+      `SELECT * FROM users WHERE email='${email}' and password='${password}' and isPasswordCreated='true'`
     );
   } finally {
     conn.end();

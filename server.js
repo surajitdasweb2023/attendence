@@ -175,6 +175,7 @@ app.put('/isPasswordCreatedUpdate', (req, res) => {
   })
 });
 app.post('/login', (req, res) => {
+  console.log(req.body)
   dbooperation.login(req.body.uiRequest).then(result => {
     const data = mysqlResults(result);
     if (data.length > 0) {
